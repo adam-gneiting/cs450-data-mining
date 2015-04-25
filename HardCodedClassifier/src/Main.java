@@ -47,7 +47,7 @@ public class Main {
 		
 		// Attempt at running a cross validation check using my classifier
 		Evaluation multi_eval = new Evaluation(cross_validation_data);
-		multi_eval.crossValidateModel(classifier, cross_validation_data, 10, new Random(1));
+		multi_eval.crossValidateModel(classifier, cross_validation_data, 10, new Random());
 		System.out.println(multi_eval.toSummaryString("\n\nResults\n\n", false));
 	}
 }
