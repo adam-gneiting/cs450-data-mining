@@ -11,6 +11,12 @@ public class Main {
 		String file="lib/iris.csv";
 		DataSource source = new DataSource(file);
 		Instances data = source.getDataSet();
+		
+		// Set up cross validation data set for use
+		// This data is the same as above, but we use the whole set multiple times.
+		Instances cross_validation_data = data;
+		cross_validation_data.setClassIndex(cross_validation_data.numAttributes() - 1);
+		
 		data.randomize(new Random());
 		
 		RemovePercentage filter = new RemovePercentage();
@@ -38,5 +44,10 @@ public class Main {
 
 		String summary = eval.toSummaryString();
 		System.out.print(summary);
+		
+		// Attempt at running a cross validation check using my classifier
+		Evaluation multi_eval = new Evaluation(cross_validation_data);
+		multi_eval.crossValidateModel(classifier, cross_validation_data, 10, new Random(1));
+		System.out.println(multi_eval.toSummaryString("\n\nResults\n\n", false));
 	}
 }
