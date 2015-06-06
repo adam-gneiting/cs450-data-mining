@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class Neuron {
 
 	static Double n_const = 0.9;
-	ArrayList<Double> weights;
+	ArrayList<Double> weights = new ArrayList<Double>();
 	Double activation_value;
 	Double h_value;
 	Double error;
@@ -20,7 +20,6 @@ public class Neuron {
 	
 	public void init(boolean bias) {
 		bias_neuron = bias;
-		weights = new ArrayList<Double>();
 	}
 	
 	public Double evaluate(ArrayList<Double> inputs) {
@@ -30,7 +29,8 @@ public class Neuron {
 			int length = inputs.size();
 			
 			if (this.weights.size() == 0) {
-				this.init(length);
+				//System.err.println("Creating Weights array or length " + length);
+				this.initWeights(length);
 			}
 			
 			for (int i = 0; i < length; ++i) {
@@ -45,6 +45,7 @@ public class Neuron {
 		}
 		
 		activation_value = result;
+		//System.err.println("Result: " + result);
 		
 		return result;
 	}
@@ -69,10 +70,25 @@ public class Neuron {
 	}
 	
 	public void updateWeights(ArrayList<Double> inputs) {
-		int size = inputs.size();
-		for (int i = 0; i < size; ++i) {
-			Double weight = weights.get(i);
-			weights.set(i, weight - (n_const * error * inputs.get(i)));
+		if (!bias_neuron) {
+			int size = inputs.size();
+	
+			//System.err.println("Size of 'weights': " + weights.size());
+			for (int i = 0; i < size; ++i) {
+				//System.err.println("Index: " + i);
+				Double weight = weights.get(i);
+				weights.set(i, weight - (n_const * error * inputs.get(i)));
+			}
+		}
+	}
+	
+	public boolean is_bias() {
+		return bias_neuron;
+	}
+	
+	private void initWeights(int length) {
+		for (int i = 0; i < length; ++i) {
+			weights.add(((Math.random() * 2) - 1) / length);
 		}
 	}
 	
@@ -81,20 +97,19 @@ public class Neuron {
 	}
 	
 	private void hiddenLayerError(int index, ArrayList<Neuron> next_layer) {
+		if (!bias_neuron) {
 		Double sum_of_weighted_errors = 0.0;
-		int size = next_layer.size();
-		for (int i = 0; i < size; ++i) {
-			Neuron n = next_layer.get(i);
-			sum_of_weighted_errors += n.getWeightByIndex(index) * n.getError();
+			int size = next_layer.size();
+			for (int i = 0; i < size; ++i) {
+				Neuron n = next_layer.get(i);
+				if (!n.is_bias()) {
+					Double weight = n.getWeightByIndex(index);
+					Double error = n.getError();
+					sum_of_weighted_errors += weight * error;
+				}
+			}
+			
+			error = activation_value * (1 - activation_value) * sum_of_weighted_errors;
 		}
-		
-		error = activation_value * (1 - activation_value) * sum_of_weighted_errors;
 	}
-	
-	private void init(int length) {
-		for (int i = 0; i < length; ++i) {
-			weights.add(((Math.random() * 2) - 1) / length);
-		}
-	}
-	
 }

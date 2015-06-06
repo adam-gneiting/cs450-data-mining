@@ -6,8 +6,8 @@ import weka.core.Instance;
 
 public class NeuralNetwork {
 	
-	ArrayList<ArrayList<Neuron>> layers;
-	ArrayList<ArrayList<Double>> activations;
+	ArrayList<ArrayList<Neuron>> layers = new ArrayList<ArrayList<Neuron>>();
+	ArrayList<ArrayList<Double>> activations = new ArrayList<ArrayList<Double>>();
 	// TODO: This forces sequential propagation.  Update to allow batch
 	// processing.
 	Instance instance;
@@ -15,27 +15,28 @@ public class NeuralNetwork {
 	
 	public NeuralNetwork(ArrayList<Integer> layer_counts) {
 		length = layer_counts.size();
-		Boolean bias = (length > 1);
+		boolean bias = (length > 1);
 				
 		for (int i = 0; i < length; ++i) {
 			int count = layer_counts.get(i);
-			boolean bias_added = !bias;
+			boolean bias_added = ((!bias) || ((i + 1) == length));
 			
-			if (bias) {
+			if (bias && ((i + 1) < length)) {
 				count++;
 			}
 			
 			layers.add(new ArrayList<Neuron>());
+			//System.err.println("Size of 'layers': " + layers.size());
 			
 			for (int j = 0; j < count; ++j) {
+				//System.err.println("Index: " + j);
 				if (bias_added) {
-					layers.get(j).add(new Neuron());
+					Neuron n = new Neuron();
+					layers.get(i).add(n);
 				} else {
 					bias_added = !bias_added;
-					if ((i + 1) == length) {
-						Neuron temp = new Neuron(true);
-						layers.get(j).add(temp);
-					}
+					Neuron temp = new Neuron(true);
+					layers.get(i).add(temp);
 				}
 			}
 		}
@@ -71,26 +72,19 @@ public class NeuralNetwork {
 		ArrayList<ArrayList<Double>> errors = new ArrayList<ArrayList<Double>>();
 		for (int i = layers.size(); i > 0; --i) {
 			ArrayList<Neuron> layer = layers.get(i - 1);
-			ArrayList<Double> layer_errors = new ArrayList<Double>();
+			ArrayList<Neuron> next_layer = new ArrayList<Neuron>();
+			if (i != layers.size()) {
+				next_layer = layers.get(i);
+			}
 			ArrayList<Double> new_layer_errors = new ArrayList<Double>();
 			ArrayList<Double> inputs = activations.get(i - 1);
 			int size = layer.size();
-			if (!output_layer) {
-				// Populate errors list
-				layer_errors = errors.get(size - i);
-			}
 			
 			for (int j = 0; j < size; ++j) {
 				Neuron n = layer.get(j);
-				ArrayList<Neuron> next_layer = layers.get(i);
+				
 				boolean correct_class = ((int) instance.classValue() == j);
 				
-//				ArrayList<Double> weighted_errors = new ArrayList<Double>();
-//				int next_size = next_layer.size();
-//				for (int k = 0; k < next_size; ++k) {
-//					Neuron prev = next_layer.get(k);
-//					weighted_errors.add(prev.getError() * prev.getWeightByIndex(j));
-//				}
 				// Get the unweighted errors for the Neuron.
 				Double error = n.getError(output_layer, j, next_layer, correct_class);
 				
@@ -105,5 +99,13 @@ public class NeuralNetwork {
 			// we need to perform a different update function.
 			output_layer = false;
 		}
+	}
+	
+	public boolean classificationValidation(Double class_index) {
+		return this.classificationValidation(instance, class_index);
+	}
+	
+	public boolean classificationValidation(Instance i, Double class_index) {
+		return (i.classValue() == class_index);
 	}
 }
