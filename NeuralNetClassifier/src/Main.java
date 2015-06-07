@@ -49,10 +49,23 @@ public class Main {
 			}
 		}
 		
+		int success_count = 0;
+		int failure_count = 0;
+		int total_classified = 0;
+		
 		for (int i = 0; i < test_size; ++i) {
 			Double class_index = nn.evaluate(test.instance(i));
 			boolean success = nn.classificationValidation(class_index);
-			System.out.println(((success) ? "Success" : "Failure"));
+			if (success) {
+				success_count++;
+			} else {
+				failure_count++;
+			}
+			total_classified++;
 		}
+		
+		System.out.println("Test set instances classified: " + total_classified);
+		System.out.println("  Correctly classified: " + success_count + "    Percent: " + ((double) success_count) / total_classified + "%");
+		System.out.println("Incorrectly classified: " + failure_count + "    Percent: " + ((double) failure_count) / total_classified + "%");
 	}
 }
