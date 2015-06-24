@@ -3,6 +3,10 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.lang.Math;
 
@@ -27,27 +31,29 @@ public class KNNClassifier extends Classifier {
 	@Override
 	public double classifyInstance(Instance i) {
 		
-		TreeMap<Double, Instance> map = new TreeMap<Double, Instance>();
+		TreeMap<Double, List<Instance>> map = new TreeMap<Double, List<Instance>>();
 		for (int j = 0; j < this.mInstances.numInstances(); ++j) {
 			Instance compared = this.mInstances.instance(j);
 			Double distance = this.getDistance(i, compared);
-			map.put(distance, compared);
-		}
-		
-		TreeMap<Double, ArrayList<Instance>> classes = new TreeMap<Double, ArrayList<Instance>>();
-		for (int j = 0; j < this.k; ++j) {
-			Instance tmp = (Instance) map.pollFirstEntry().getValue();
-			ArrayList<Instance> list = new ArrayList<Instance>();
-			Double classValue = tmp.classValue();
-			if (classes.get(classValue) != null) {
-				 list = classes.get(tmp.classValue());
+			List<Instance> list = new ArrayList<Instance>();
+			if (map.get(distance) != null) {
+				 list = map.get(distance);
 			}
-			list.add(tmp);
-			classes.put(tmp.classValue(), list);
+			list.add(compared);
+			map.put(distance, (ArrayList<Instance>) list);
 		}
 		
-		ArrayList<Instance> instances = classes.pollLastEntry().getValue();
-		return instances.remove(0).classValue();
+		List<Double> classes = new ArrayList<Double>();
+		for (int j = 0; j < this.k; ++j) {
+			List<Instance> tmp_list = (List<Instance>) map.pollFirstEntry().getValue();
+			j += tmp_list.size() - 1;
+
+			for (Instance tmp_inst : tmp_list) {
+				classes.add(tmp_inst.classValue());
+			}
+		}
+		
+		return this.mostCommon(classes);
 	}
 	
 	private double getDistance(Instance right, Instance left) {
@@ -58,11 +64,28 @@ public class KNNClassifier extends Classifier {
 			if (right.attribute(i).isNumeric()) {
 				distance += Math.abs(right.value(i) - left.value(i));
 			} else {
-				distance += (right.attribute(i).equals(left.attribute(i))) ? this.weightOfNominal : 0;
+				distance += (right.value(i) == left.value(i)) ? this.weightOfNominal : 0;
 			}
 		}
 		
 		return distance;
 	}
 	
+	private <T> T mostCommon(List<T> list) {
+	    Map<T, Integer> map = new HashMap<>();
+
+	    for (T t : list) {
+	        Integer val = map.get(t);
+	        map.put(t, val == null ? 1 : val + 1);
+	    }
+
+	    Entry<T, Integer> max = null;
+
+	    for (Entry<T, Integer> e : map.entrySet()) {
+	        if (max == null || e.getValue() > max.getValue())
+	            max = e;
+	    }
+
+	    return max.getKey();
+	}
 }

@@ -11,7 +11,7 @@ import weka.filters.unsupervised.instance.RemovePercentage;
 public class Main {
 	
 	private static int runs = 1000;
-	private static ArrayList<Integer> layers = new ArrayList<Integer>(Arrays.asList(5,4)); 
+	private static ArrayList<Integer> layers = new ArrayList<Integer>(Arrays.asList(5,3)); 
 	
 	public static void main(String[] args) throws Exception {
 		String file="lib/iris.csv";
